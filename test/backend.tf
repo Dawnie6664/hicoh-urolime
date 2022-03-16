@@ -1,10 +1,10 @@
 terraform {
 //  Save state to S3 and DynamoDB
   backend "s3" {
-	bucket = "devops-urolime-test"
+	bucket = "hicoh-test"
 	key    = "develop/state"
 	region = "eu-west-2"
-	dynamodb_table = "terraform-develop-test"
+	dynamodb_table = "hicoh-develop-test"
   }
 
 
