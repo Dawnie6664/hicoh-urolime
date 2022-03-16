@@ -10,7 +10,7 @@ jobs:
      steps:
        - checkout
        - terraform/init:
-             path: ./environments/CIRCLE_BRANCH/
+             path: ./environments/${CIRCLE_BRANCH}
        - terraform/plan:
              path: environments/${CIRCLE_BRANCH}
 
