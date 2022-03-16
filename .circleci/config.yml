@@ -10,9 +10,9 @@ jobs:
      steps:
        - checkout
        - terraform/init:
-             path: test
+             path: environments/${CIRCLE_BRANCH}
        - terraform/plan:
-             path: test
+             path: environments/${CIRCLE_BRANCH}
 
 workflows:
   deploy_infrastructure:
