@@ -7,11 +7,12 @@ orbs:
 jobs:
   terraformer-plan:
      executor: terraform/default
-     path: env/${CIRCLE_BRANCH}
      steps:
        - checkout
-       - terraform/init
-       - terraform/plan
+       - terraform/init:
+             path: test
+       - terraform/plan:
+             path: test
 
 workflows:
   deploy_infrastructure:
