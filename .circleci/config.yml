@@ -66,7 +66,7 @@ workflows:
                 only:
                    - master
 
-        - hold-apply:
+      - hold-apply:
             type: approval
             filters:
               branches:
@@ -79,7 +79,7 @@ workflows:
                    - terraformer-plan-stage
                    - terraformer-plan-develop
          
-       - terraformer-apply-develop:
+      - terraformer-apply-develop:
                context: "AWS Credentials"
                checkout: true
                requires:
