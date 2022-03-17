@@ -77,7 +77,6 @@ workflows:
          
       - terraformer-apply-develop:
             context: "AWS Credentials"
-            checkout: true
             tf-path: ./environments/development
             requires:
                 - hold-apply
