@@ -6,31 +6,31 @@ orbs:
 
 jobs:
   terraformer-plan: &terraformer-plan
-     executor: terraform/default
-     working_directory: ~/project
-     parameters:
-       tf-path:
-             description: tf path
-             type: string
-     steps:
-       - checkout
-       - terraform/init:
-            path: << parameters.tf-path >>
-       - terraform/plan:
-            path: << parameters.tf-path >>
+    executor: terraform/default
+    working_directory: ~/project
+    parameters:
+      tf-path:
+        description: tf path
+        type: string
+    steps:
+      - checkout
+      - terraform/init:
+           path: << parameters.tf-path >>
+      - terraform/plan:
+           path: << parameters.tf-path >>
 
 
   terraformer-apply: &terraformer-apply
-     executor: terraform/default
-     working_directory: ~/project
-     parameters:
-       tf-path:
-             description: tf path
-             type: string
-     steps:
-       - checkout
-       - terraform/apply:
-            path:  << parameters.tf-path >>
+    executor: terraform/default
+    working_directory: ~/project
+    parameters:
+      tf-path:
+        description: tf path
+        type: string
+    steps:
+      - checkout
+      - terraform/apply:
+           path:  << parameters.tf-path >>
 
 terraformer-plan-master: *terraformer-plan
 terraformer-plan-staging: *terraformer-plan
