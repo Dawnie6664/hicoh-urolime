@@ -20,24 +20,24 @@ jobs:
            path: << parameters.tf-path >>
 
 
-  terraformer-apply: &terraformer-apply
-    executor: terraform/default
-    working_directory: ~/project
-    parameters:
-      tf-path:
-        description: tf path
-        type: string
-    steps:
-      - checkout
-      - terraform/apply:
-           path:  << parameters.tf-path >>
+           #terraformer-apply: &terraformer-apply
+           #executor: terraform/default
+           # working_directory: ~/project
+           #parameters:
+           #tf-path:
+           #description: tf path
+           #type: string
+           # steps:
+           #- checkout
+           #- terraform/apply:
+           #path:  << parameters.tf-path >>
 
 terraformer-plan-master: *terraformer-plan
 terraformer-plan-staging: *terraformer-plan
 terraformer-plan-develop: *terraformer-plan
-terraformer-apply-master: *terraformer-apply
-terraformer-apply-staging: *terraformer-apply
-terraformer-apply-develop: *terraformer-apply
+#terraformer-apply-master: *terraformer-apply
+#terraformer-apply-staging: *terraformer-apply
+#terraformer-apply-develop: *terraformer-apply
 
 workflows:
   deploy_infrastructure:
@@ -79,11 +79,11 @@ workflows:
                    - terraformer-plan-stage
                    - terraformer-plan-develop
          
-      - terraformer-apply-develop:
-               context: "AWS Credentials"
-               checkout: true
-               requires:
-                   - hold-apply
+                     # - terraformer-apply-develop:
+                     #  context: "AWS Credentials"
+                     #checkout: true
+                     #   requires:
+                     #   - hold-apply
 
          
 
