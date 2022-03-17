@@ -38,9 +38,9 @@ locals {
   ]
 }
 
-module "hico-test-dev" {
+module "hico-test-staging" {
   source       = "../../eks"
-  cluster_name = "hico-test-dev"
+  cluster_name = "hico-test-stage"
   instance_type        = "t2.micro"
   asg_min_capacity     = 1
   asg_desired_capacity = 1
