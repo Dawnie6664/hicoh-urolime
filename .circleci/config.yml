@@ -71,12 +71,8 @@ workflows:
             filters:
               branches:
                 only:
-                   - master
                    - main
-                   - staging
             requires:
-                   - terraformer-plan-master
-                   - terraformer-plan-stage
                    - terraformer-plan-develop
          
                      # - terraformer-apply-develop:
