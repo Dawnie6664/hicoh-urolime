@@ -32,9 +32,9 @@ jobs:
            #- terraform/apply:
            #path:  << parameters.tf-path >>
 
-terraformer-plan-master: *terraformer-plan
-terraformer-plan-staging: *terraformer-plan
-terraformer-plan-develop: *terraformer-plan
+  terraformer-plan-master: *terraformer-plan
+  terraformer-plan-staging: *terraformer-plan
+  terraformer-plan-develop: *terraformer-plan
 #terraformer-apply-master: *terraformer-apply
 #terraformer-apply-staging: *terraformer-apply
 #terraformer-apply-develop: *terraformer-apply
