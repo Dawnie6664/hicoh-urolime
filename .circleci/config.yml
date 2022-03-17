@@ -66,7 +66,7 @@ workflows:
                 only:
                    - master
 
-      - hold-apply:
+      - hold-apply-develop:
             type: approval
             filters:
               branches:
@@ -74,12 +74,41 @@ workflows:
                    - main
             requires:
                    - terraformer-plan-develop
+
+      - hold-apply-staging:
+            type: approval
+            filters:
+              branches:
+                only:
+                   - staging
+            requires:
+                   - terraformer-plan-staging
+
+      - hold-apply-master:
+            type: approval
+            filters:
+              branches:
+                only:
+                   - master:
+            requires:
+                   - terraformer-plan-master
          
       - terraformer-apply-develop:
             context: "AWS Credentials"
             tf-path: ./environments/development
             requires:
-                - hold-apply
+                - hold-apply-develop
 
+      - terraformer-apply-staging:
+            context: "AWS Credentials"
+            tf-path: ./environments/staging
+            requires:
+                - hold-apply-staging 
+
+      - terraformer-apply-master:
+            context: "AWS Credentials"
+            tf-path: ./environments/production
+            requires:
+                - hold-apply-master
          
 
