@@ -39,7 +39,7 @@ locals {
 }
 
 module "hico-test-dev" {
-  source       = "../eks"
+  source       = "../../eks"
   cluster_name = "hico-test-dev"
   instance_type        = "t2.micro"
   asg_min_capacity     = 1
