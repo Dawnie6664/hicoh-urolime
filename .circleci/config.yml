@@ -50,7 +50,7 @@ workflows:
                only:
                   - main
 
-      - terraformer-plan-stage:
+      - terraformer-plan-staging:
            context: "AWS Credentials"
            tf-path: ./environments/staging
            filters:
