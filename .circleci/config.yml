@@ -89,7 +89,7 @@ workflows:
             filters:
               branches:
                 only:
-                   - master:
+                   - master
             requires:
                    - terraformer-plan-master
          
