@@ -5,60 +5,46 @@ orbs:
 
 
 jobs:
-  terraformer-plan-dev:
+  terraformer-plan: &terraformer-plan
      executor: terraform/default
+     working_directory: ~/project
+     parameters:
+       tf-path:
+             description: tf path
+             type: string
      steps:
        - checkout
        - terraform/init:
-            path: ./environments/development
+            path: << parameters.tf-path >>
        - terraform/plan:
-            path: ./environments/development
+            path: << parameters.tf-path >>
 
-  terraformer-plan-stage:
-     executor: terraform/default
-     steps:
-       - checkout
-       - terraform/init:
-            path: ./environments/staging
-       - terraform/plan:
-            path: ./environments/staging  
-             
-  terraformer-plan-prod:
-     executor: terraform/default
-     steps:
-       - checkout
-       - terraform/init:
-            path: ./environments/production
-       - terraform/plan:
-            path: ./environments/production
 
-  terraformer-apply-dev:
+  terraformer-apply: &terraformer-apply
      executor: terraform/default
+     working_directory: ~/project
+     parameters:
+       tf-path:
+             description: tf path
+             type: string
      steps:
        - checkout
        - terraform/apply:
-            path: ./environments/development
+            path:  << parameters.tf-path >>
 
-  terraformer-apply-stage:
-     executor: terraform/default
-     steps:
-       - checkout
-       - terraform/apply:
-            path: ./environments/staging
-
-
-  terraformer-apply-prod:
-     executor: terraform/default
-     steps:
-       - checkout
-       - terraform/apply:
-            path: ./environments/production
+terraformer-plan-master: *terraformer-plan
+terraformer-plan-staging: *terraformer-plan
+terraformer-plan-develop: *terraformer-plan
+terraformer-apply-master: *terraformer-apply
+terraformer-apply-staging: *terraformer-apply
+terraformer-apply-develop: *terraformer-apply
 
 workflows:
   deploy_infrastructure:
     jobs:
-      - terraformer-plan-dev:
+      - terraformer-plan-develop:
            context: "AWS Credentials"
+           tf-path: ./environments/development
            filters:
              branches:
                only:
@@ -66,13 +52,15 @@ workflows:
 
       - terraformer-plan-stage:
            context: "AWS Credentials"
+           tf-path: ./environments/staging
            filters:
              branches:
                only:
                   - staging
 
-       - terraformer-plan-prod:
+       - terraformer-plan-master:
             context: "AWS Credentials"
+            tf-path: ./environments/production
             filters:     
               branches:
                 only:
@@ -87,9 +75,11 @@ workflows:
                    - main
                    - staging
             requires:
-                   - terraformer-plan
+                   - terraformer-plan-master
+                   - terraformer-plan-stage
+                   - terraformer-plan-develop
          
-       - terraformer-apply-dev:
+       - terraformer-apply-develop:
                context: "AWS Credentials"
                checkout: true
                requires:
