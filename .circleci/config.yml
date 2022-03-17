@@ -5,18 +5,95 @@ orbs:
 
 
 jobs:
-  terraformer-plan:
+  terraformer-plan-dev:
      executor: terraform/default
      steps:
        - checkout
        - terraform/init:
-             path: ./environments/${CIRCLE_BRANCH}
+            path: ./environments/development
        - terraform/plan:
-             path: environments/${CIRCLE_BRANCH}
+            path: ./environments/development
+
+  terraformer-plan-stage:
+     executor: terraform/default
+     steps:
+       - checkout
+       - terraform/init:
+            path: ./environments/staging
+       - terraform/plan:
+            path: ./environments/staging  
+             
+  terraformer-plan-prod:
+     executor: terraform/default
+     steps:
+       - checkout
+       - terraform/init:
+            path: ./environments/production
+       - terraform/plan:
+            path: ./environments/production
+
+  terraformer-apply-dev:
+     executor: terraform/default
+     steps:
+       - checkout
+       - terraform/apply:
+            path: ./environments/development
+
+  terraformer-apply-stage:
+     executor: terraform/default
+     steps:
+       - checkout
+       - terraform/apply:
+            path: ./environments/staging
+
+
+  terraformer-apply-prod:
+     executor: terraform/default
+     steps:
+       - checkout
+       - terraform/apply:
+            path: ./environments/production
 
 workflows:
   deploy_infrastructure:
     jobs:
-      - terraformer-plan:
+      - terraformer-plan-dev:
            context: "AWS Credentials"
+           filters:
+             branches:
+               only:
+                  - main
+
+      - terraformer-plan-stage:
+           context: "AWS Credentials"
+           filters:
+             branches:
+               only:
+                  - staging
+
+       - terraformer-plan-prod:
+            context: "AWS Credentials"
+            filters:     
+              branches:
+                only:
+                   - master
+
+        - hold-apply:
+            type: approval
+            filters:
+              branches:
+                only:
+                   - master
+                   - main
+                   - staging
+            requires:
+                   - terraformer-plan
+         
+       - terraformer-apply-dev:
+               context: "AWS Credentials"
+               checkout: true
+               requires:
+                   - hold-apply
+
+         
 
