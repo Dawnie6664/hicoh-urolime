@@ -41,10 +41,10 @@ jobs:
             description: tf plan required 
             type: string
        filters:
-          branches:
+         branches:
             only:
                - << parameters.gitbranch >>
-        requires:
+       requires:
                - << parameters.tfplanrequire >>
   
 
