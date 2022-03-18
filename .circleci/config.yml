@@ -86,16 +86,22 @@ workflows:
                    - master
 
       - hold-apply-develop:
-              gitbranch: main
-              tfplanrequire: terraformer-plan-develop
+              gitbranch: 
+                  - main
+              tfplanrequire: 
+                  - terraformer-plan-develop
 
       - hold-apply-staging:
-              gitbranch: staging
-              tfplanrequire: terraformer-plan-staging
+              gitbranch: 
+                  - staging
+              tfplanrequire: 
+                  - terraformer-plan-staging
 
       - hold-apply-master:
-            gitbranch: master
-            tfplanrequire: terraformer-plan-master
+            gitbranch: 
+                  - master
+            tfplanrequire: 
+                  - terraformer-plan-master
          
       - terraformer-apply-develop:
             context: "AWS Credentials"
