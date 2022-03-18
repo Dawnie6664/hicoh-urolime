@@ -1,6 +1,8 @@
 version: '2.1'
 orbs:
   terraform: circleci/terraform@3.0.0
+  aws-eks: circleci/aws-eks@0.2
+  helm: circleci/helm@1.2.0
 
 
 
@@ -32,12 +34,61 @@ jobs:
       - terraform/apply:
            path:  << parameters.tf-path >>
 
+  upgrade-helm-chart: &upgrade-helm-chart
+    working_directory: ~/project
+    docker:
+      - image: cimg/python:3.9.6
+    parameters:
+      chart-url:
+        description: Helm chart URL
+        type: string
+      release-name:
+        description: Release Name
+        type: string
+      values-file:
+        description: Path to Values File
+        type: string
+      values-to-override:
+        type: string
+      namespace:
+        type: string
+    steps:
+      - checkout
+      - aws-eks/update-kubeconfig-with-authenticator:
+          cluster-name: 'hico-${CIRCLE_BRANCH}'
+          aws-region: '${AWS_REGION}'
+      - helm/upgrade-helm-chart:
+          chart: << parameters.chart-url >>
+          helm-version: v3.6.3
+          release-name: << parameters.release-name >>
+          timeout: "420s"
+          update-repositories: true
+          namespace: << parameters.namespace >>
+          values-to-override: << parameters.values-to-override >>
+          values: << parameters.values-file >>
+   
   terraformer-plan-master: *terraformer-plan
   terraformer-plan-staging: *terraformer-plan
   terraformer-plan-develop: *terraformer-plan
   terraformer-apply-master: *terraformer-apply
   terraformer-apply-staging: *terraformer-apply
   terraformer-apply-develop: *terraformer-apply
+  upgrade-clusterautoscaler-chart-develop: *upgrade-helm-chart
+  upgrade-clusterautoscaler-chart-staging: *upgrade-helm-chart
+  upgrade-clusterautoscaler-chart-master: *upgrade-helm-chart
+  upgrade-kong-chart-develop: *upgrade-helm-chart
+  upgrade-kong-chart-staging: *upgrade-helm-chart
+  upgrade-kong-chart-master: *upgrade-helm-chart
+  upgrade-redis-chart-develop: *upgrade-helm-chart
+  upgrade-redis-chart-staging: *upgrade-helm-chart
+  upgrade-redis-chart-master: *upgrade-helm-chart
+  upgrade-datadog-chart-develop: *upgrade-helm-chart
+  upgrade-datadog-chart-staging: *upgrade-helm-chart
+  upgrade-datadog-chart-master: *upgrade-helm-chart
+  upgrade-prometheus-stack-chart-develop: *upgrade-helm-chart
+  upgrade-prometheus-stack-chart-staging: *upgrade-helm-chart
+  upgrade-prometheus-stack-chart-master: *upgrade-helm-chart
+
 
 workflows:
   deploy_infrastructure:
@@ -110,5 +161,216 @@ workflows:
             tf-path: ./environments/production
             requires:
                 - hold-apply-master
-         
 
+#     - upgrade-clusterautoscaler-chart-develop:
+#          chart-url: https://github.com/kubernetes/autoscaler/releases/download/cluster-autoscaler-chart-9.10.5/cluster-autoscaler-9.10.5.tgz
+#          release-name: cluster-autoscaler
+#          namespace: kube-system
+#          values-file: 'helm-values/cluster-autoscaler-9.10.5-values.yaml'
+#          values-to-override: 'autoDiscovery.clusterName=hico-${CIRCLE_BRANCH},rbac.serviceAccount.annotations.eks.amazonaws.com/role-arn=arn:aws:iam::002193201352:role/hico-${CIRCLE_BRANCH}-autoscaler'
+#          context: "AWS Credentials"
+#          requires:
+#            - hold-apply
+#          filters:
+#              branches:
+#                only:
+#                   - develop
+
+
+#     - upgrade-clusterautoscaler-chart-staging:
+#          chart-url: https://github.com/kubernetes/autoscaler/releases/download/cluster-autoscaler-chart-9.10.5/cluster-autoscaler-9.10.5.tgz
+#          release-name: cluster-autoscaler
+#          namespace: kube-system
+#          values-file: 'helm-values/cluster-autoscaler-9.10.5-values.yaml'
+#          values-to-override: 'autoDiscovery.clusterName=hico-${CIRCLE_BRANCH},rbac.serviceAccount.annotations.eks.amazonaws.com/role-arn=arn:aws:iam::002193201352:role/hico-${CIRCLE_BRANCH}-autoscaler'
+#          context: "AWS Credentials"
+#          requires:
+#            - hold-apply
+#          filters:
+#              branches:
+#                only:
+#                   - staging
+
+#     - upgrade-clusterautoscaler-chart-master:
+#          chart-url: https://github.com/kubernetes/autoscaler/releases/download/cluster-autoscaler-chart-9.10.5/cluster-autoscaler-9.10.5.tgz
+#          release-name: cluster-autoscaler
+#          namespace: kube-system
+#          values-file: 'helm-values/cluster-autoscaler-9.10.5-values.yaml'
+#          values-to-override: 'autoDiscovery.clusterName=hico-${CIRCLE_BRANCH},rbac.serviceAccount.annotations.eks.amazonaws.com/role-arn=arn:aws:iam::002193201352:role/hico-${CIRCLE_BRANCH}-autoscaler'
+#          context: "AWS Credentials"
+#          requires:
+#            - hold-apply
+#          filters:
+#              branches:
+#                only:
+#                   - master
+
+
+      - upgrade-kong-chart-develop:
+          chart-url: https://github.com/Kong/charts/releases/download/kong-2.3.0/kong-2.3.0.tgz
+          release-name: kong
+          namespace: kong
+          values-file: 'helm-values/kong-2.3.0-values.yml'
+          values-to-override: ''
+          context: "AWS Credentials"
+          requires:
+            - hold-apply
+          filters:
+              branches:
+                only:
+                   - develop
+
+      - upgrade-kong-chart-staging:
+          chart-url: https://github.com/Kong/charts/releases/download/kong-2.3.0/kong-2.3.0.tgz
+          release-name: kong
+          namespace: kong
+          values-file: 'helm-values/kong-2.3.0-values.yml'
+          values-to-override: ''
+          context: "AWS Credentials"
+          requires:
+            - hold-apply
+          filters:
+              branches:
+                only:
+                   - staging
+                  
+      - upgrade-kong-chart-master:
+          chart-url: https://github.com/Kong/charts/releases/download/kong-2.3.0/kong-2.3.0.tgz
+          release-name: kong
+          namespace: kong
+          values-file: 'helm-values/kong-2.3.0-values.yml'
+          values-to-override: ''
+          context: "AWS Credentials"
+          requires:
+            - hold-apply
+          filters:
+              branches:
+                only:
+                   - master
+                   
+      - upgrade-redis-chart-develop:
+          chart-url: https://charts.bitnami.com/bitnami/redis-15.4.1.tgz
+          release-name: redis-cluster
+          namespace: kube-redis
+          values-file: 'helm-values/redis-15.4.1-values.yml'
+          values-to-override: ''
+          context: "AWS Credentials"
+          requires:
+            - hold-apply
+          filters:
+              branches:
+                only:
+                   - develop
+
+      - upgrade-redis-chart-staging:
+          chart-url: https://charts.bitnami.com/bitnami/redis-15.4.1.tgz
+          release-name: redis-cluster
+          namespace: kube-redis
+          values-file: 'helm-values/redis-15.4.1-values.yml'
+          values-to-override: ''
+          context: "AWS Credentials"
+          requires:
+            - hold-apply
+          filters:
+              branches:
+                only:
+                   - staging
+        
+      - upgrade-redis-chart-master:
+          chart-url: https://charts.bitnami.com/bitnami/redis-15.4.1.tgz
+          release-name: redis-cluster
+          namespace: kube-redis
+          values-file: 'helm-values/redis-15.4.1-values.yml'
+          values-to-override: ''
+          context: "AWS Credentials"
+          requires:
+            - hold-apply
+          filters:
+              branches:
+                only:
+                   - master
+          
+      - upgrade-datadog-chart-develop:
+          chart-url: https://github.com/DataDog/helm-charts/releases/download/datadog-2.20.1/datadog-2.20.1.tgz
+          release-name: datadog
+          namespace: datadog
+          values-to-override: 'datadog.apiKey=${DATATOG_API_KEY},datadog.clusterName=hico-${CIRCLE_BRANCH}'
+          values-file: 'helm-values/datadog-2.20.1-values.yml'
+          context: "AWS Credentials"
+          requires:
+            - hold-apply
+          filters:
+            branches:
+              only:
+                - develop
+      
+      - upgrade-datadog-chart-staging:
+          chart-url: https://github.com/DataDog/helm-charts/releases/download/datadog-2.20.1/datadog-2.20.1.tgz
+          release-name: datadog
+          namespace: datadog
+          values-to-override: 'datadog.apiKey=${DATATOG_API_KEY},datadog.clusterName=hico-${CIRCLE_BRANCH}'
+          values-file: 'helm-values/datadog-2.20.1-values.yml'
+          context: "AWS Credentials"
+          requires:
+            - hold-apply
+          filters:
+            branches:
+              only:
+                - staging
+
+      - upgrade-datadog-chart-master:
+          chart-url: https://github.com/DataDog/helm-charts/releases/download/datadog-2.20.1/datadog-2.20.1.tgz
+          release-name: datadog
+          namespace: datadog
+          values-to-override: 'datadog.apiKey=${DATATOG_API_KEY},datadog.clusterName=hico-${CIRCLE_BRANCH}'
+          values-file: 'helm-values/datadog-2.20.1-values.yml'
+          context: "AWS Credentials"
+          requires:
+            - hold-apply
+          filters:
+            branches:
+              only:
+                - master
+
+      - upgrade-prometheus-stack-chart-develop:
+          chart-url: https://github.com/prometheus-community/helm-charts/releases/download/kube-prometheus-stack-18.0.2/kube-prometheus-stack-18.0.2.tgz
+          release-name: prometheus
+          namespace: kube-prometheus-stack
+          values-file: 'helm-values/kube-prometheus-stack-18.0.2.yml'
+          context: "AWS Credentials"
+          requires:
+            - hold-apply
+          values-to-override: 'grafana.ingress.hosts[0]=grafana-${CIRCLE_BRANCH}.highcohesion.com'
+          filters:
+            branches:
+              only:
+                - develop
+
+      - upgrade-prometheus-stack-chart-staging:
+          chart-url: https://github.com/prometheus-community/helm-charts/releases/download/kube-prometheus-stack-18.0.2/kube-prometheus-stack-18.0.2.tgz
+          release-name: prometheus
+          namespace: kube-prometheus-stack
+          values-file: 'helm-values/kube-prometheus-stack-18.0.2.yml'
+          context: "AWS Credentials"
+          requires:
+            - hold-apply
+          values-to-override: 'grafana.ingress.hosts[0]=grafana-${CIRCLE_BRANCH}.highcohesion.com'
+          filters:
+            branches:
+              only:
+                - staging
+
+      - upgrade-prometheus-stack-chart-master:
+          chart-url: https://github.com/prometheus-community/helm-charts/releases/download/kube-prometheus-stack-18.0.2/kube-prometheus-stack-18.0.2.tgz
+          release-name: prometheus
+          namespace: kube-prometheus-stack
+          values-file: 'helm-values/kube-prometheus-stack-18.0.2.yml'
+          context: "AWS Credentials"
+          requires:
+            - hold-apply
+          values-to-override: 'grafana.ingress.hosts[0]=grafana.highcohesion.com'
+          filters:
+            branches:
+              only:
+                - staging
+                

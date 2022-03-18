@@ -1,0 +1,196 @@
+#  helm upgrade --install datadog -f datadog-2.20.1-values.yml --set datadog.clusterName='hico-develop' --set datadog.apiKey='<APIKEY>' datadog/datadog -n datadog --create-namespace
+
+
+## Default values for Datadog Agent
+## See Datadog helm documentation to learn more:
+## https://docs.datadoghq.com/agent/kubernetes/helm/
+
+# nameOverride -- Override name of app
+nameOverride:  # ""
+
+# fullnameOverride -- Override the full qualified app name
+fullnameOverride:  # ""
+
+# targetSystem -- Target OS for this deployment (possible values: linux, windows)
+targetSystem: "linux"
+
+# registry -- Registry to use for all Agent images (default gcr.io)
+## Currently we offer Datadog Agent images on:
+## GCR - use gcr.io/datadoghq (default)
+## DockerHub - use docker.io/datadog
+## AWS - use public.ecr.aws/datadog
+registry: public.ecr.aws/datadog
+
+datadog:
+  # datadog.apiKey -- Your Datadog API key
+  # ref: https://app.datadoghq.com/account/settings#agent/kubernetes
+  apiKey: <DATADOG_API_KEY>
+
+  # datadog.apiKeyExistingSecret -- Use existing Secret which stores API key instead of creating a new one
+  ## If set, this parameter takes precedence over "apiKey".
+  apiKeyExistingSecret:  # <DATADOG_API_KEY_SECRET>
+
+  # datadog.appKey -- Datadog APP key required to use metricsProvider
+  ## If you are using clusterAgent.metricsProvider.enabled = true, you must set
+  ## a Datadog application key for read access to your metrics.
+  appKey:  # <DATADOG_APP_KEY>
+
+  # datadog.appKeyExistingSecret -- Use existing Secret which stores APP key instead of creating a new one
+  ## If set, this parameter takes precedence over "appKey".
+  appKeyExistingSecret:  # <DATADOG_APP_KEY_SECRET>
+
+
+  # datadog.clusterName -- Set a unique cluster name to allow scoping hosts and Cluster Checks easily
+  ## The name must be unique and must be dot-separated tokens with the following restrictions:
+  ## * Lowercase letters, numbers, and hyphens only.
+  ## * Must start with a letter.
+  ## * Must end with a number or a letter.
+  ## * Overall length should not be higher than 80 characters.
+  ## Compared to the rules of GKE, dots are allowed whereas they are not allowed on GKE:
+  ## https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1beta1/projects.locations.clusters#Cluster.FIELDS.name
+  clusterName: hico-develop
+
+  # datadog.site -- The site of the Datadog intake to send Agent data to
+  ## Set to 'datadoghq.eu' to send data to the EU site.
+  site: datadoghq.eu
+
+  # datadog.env -- Set environment variables for all Agents
+  ## The Datadog Agent supports many environment variables.
+  ## ref: https://docs.datadoghq.com/agent/docker/?tab=standard#environment-variables
+  env:
+     - name: DD_CONTAINER_EXCLUDE
+       value: "kube_namespace:kong kube_namespace:datadog kube_namespace:openfaas kube_namespace:kube*"
+     - name: DD_APM_ENABLED
+       value: "false"
+     - name: DD_LOGS_CONFIG_PROCESSING_RULES
+       value: '[{"type": "exclude_at_match", "name": "exclude_worker_commands_log", "pattern" : "(?:Processed:)|(?:Processing:)|(?:Command[[:space:]]has[[:space:]]finished)"}]'
+
+
+  ## Enable logs agent and provide custom configs
+  logs:
+    # datadog.logs.enabled -- Enables this to activate Datadog Agent log collection
+    ## ref: https://docs.datadoghq.com/agent/basic_agent_usage/kubernetes/#log-collection-setup
+    enabled: true
+
+    # datadog.logs.containerCollectAll -- Enable this to allow log collection for all containers
+    ## ref: https://docs.datadoghq.com/agent/basic_agent_usage/kubernetes/#log-collection-setup
+    containerCollectAll: true
+
+    # datadog.logs.containerCollectUsingFiles -- Collect logs from files in /var/log/pods instead of using container runtime API
+    ## It's usually the most efficient way of collecting logs.
+    ## ref: https://docs.datadoghq.com/agent/basic_agent_usage/kubernetes/#log-collection-setup
+    containerCollectUsingFiles: true
+
+
+  ## Enable apm agent and provide custom configs
+  apm:
+    # datadog.apm.socketEnabled -- Enable APM over Socket (Unix Socket or windows named pipe)
+    ## ref: https://docs.datadoghq.com/agent/kubernetes/apm/
+    socketEnabled: false
+
+    # datadog.apm.portEnabled -- Enable APM over TCP communication (port 8216 by default
+    ## ref: https://docs.datadoghq.com/agent/kubernetes/apm/
+    portEnabled: false
+
+    # datadog.apm.enabled -- Enable this to enable APM and tracing, on port 8126
+    # DEPRECATED. Use datadog.apm.portEnabled instead
+    ## ref: https://github.com/DataDog/docker-dd-agent#tracing-from-the-host
+    enabled: false
+
+
+  orchestratorExplorer:
+    # datadog.orchestratorExplorer.enabled -- Set this to false to disable the orchestrator explorer
+    ## This requires processAgent.enabled and clusterAgent.enabled to be set to true
+    ## ref: TODO - add doc link
+    enabled: true
+
+    # datadog.orchestratorExplorer.container_scrubbing -- Enable the scrubbing of containers in the kubernetes resource YAML for sensitive information
+    ## The container scrubbing is taking significant resources during data collection.
+    ## If you notice that the cluster-agent uses too much CPU in larger clusters
+    ## turning this option off will improve the situation.
+    container_scrubbing:
+      enabled: false
+
+  networkMonitoring:
+    # datadog.networkMonitoring.enabled -- Enable network performance monitoring
+    enabled: false
+
+  ## Enable process agent and provide custom configs
+  processAgent:
+    # datadog.processAgent.enabled -- Set this to true to enable live process monitoring agent
+    ## Note: /etc/passwd is automatically mounted to allow username resolution.
+    ## ref: https://docs.datadoghq.com/graphing/infrastructure/process/#kubernetes-daemonset
+    enabled: false
+
+    # datadog.processAgent.processCollection -- Set this to true to enable process collection in process monitoring agent
+    ## Requires processAgent.enabled to be set to true to have any effect
+    processCollection: false
+
+    # datadog.processAgent.stripProcessArguments -- Set this to scrub all arguments from collected processes
+    ## Requires processAgent.enabled and processAgent.processCollection to be set to true to have any effect
+    ## ref: https://docs.datadoghq.com/infrastructure/process/?tab=linuxwindows#process-arguments-scrubbing
+    stripProcessArguments: false
+
+  # datadog.containerExcludeMetrics -- Exclude metrics from the Agent
+  # Autodiscovery, as a space-separated list
+  containerExcludeMetrics: "*"
+
+## This is the Datadog Cluster Agent implementation that handles cluster-wide
+## metrics more cleanly, separates concerns for better rbac, and implements
+## the external metrics API so you can autoscale HPAs based on datadog metrics
+## ref: https://docs.datadoghq.com/agent/kubernetes/cluster/
+clusterAgent:
+  # clusterAgent.enabled -- Set this to false to disable Datadog Cluster Agent
+  enabled: false
+
+  admissionController:
+    # clusterAgent.admissionController.enabled -- Enable the admissionController to be able to inject APM/Dogstatsd config and standard tags (env, service, version) automatically into your pods
+    enabled: false
+
+    # clusterAgent.admissionController.mutateUnlabelled -- Enable injecting config without having the pod label 'admission.datadoghq.com/enabled="true"'
+    mutateUnlabelled: false
+
+
+  # clusterAgent.resources -- Datadog cluster-agent resource requests and limits.
+  resources:
+   requests:
+     cpu: 200m
+     memory: 256Mi
+   limits:
+     cpu: 200m
+     memory: 256Mi
+
+
+
+agents:
+  # agents.enabled -- You should keep Datadog DaemonSet enabled!
+  ## The exceptional case could be a situation when you need to run
+  ## single Datadog pod per every namespace, but you do not need to
+  ## re-create a DaemonSet for every non-default namespace install.
+  ## Note: StatsD and DogStatsD work over UDP, so you may not
+  ## get guaranteed delivery of the metrics in Datadog-per-namespace setup!
+  #
+  enabled: true
+
+
+  containers:
+    agent:
+      # agents.containers.agent.resources -- Resource requests and limits for the agent container.
+      resources:
+        requests:
+          cpu: 100m
+          memory: 200Mi
+        limits:
+          cpu: 100m
+          memory: 200Mi
+
+
+    processAgent:
+      # agents.containers.processAgent.resources -- Resource requests and limits for the process-agent container
+      resources:
+        requests:
+          cpu: 100m
+          memory: 200Mi
+        limits:
+          cpu: 100m
+          memory: 200Mi

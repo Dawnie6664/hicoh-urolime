@@ -1,0 +1,78 @@
+# helm upgrade -n kubernetes-dashboard --install kubernetes-dashboard kubernetes-dashboard/kubernetes-dashboard  --create-namespace --values k8s-dashboard-4.5.0-values.yml
+
+
+  # Copyright 2020 The Kubernetes Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Default values for kubernetes-dashboard
+# This is a YAML-formatted file.
+# Declare name/value pairs to be passed into your templates.
+# name: value
+
+image:
+  ## Repository for container
+  repository: kubernetesui/dashboard
+  tag: v2.3.1
+  pullPolicy: IfNotPresent
+  pullSecrets: []
+
+## Number of replicas
+replicaCount: 1
+
+## Additional container arguments
+##
+extraArgs:
+# - --enable-skip-login
+# - --enable-insecure-login
+# - --system-banner="Welcome to Kubernetes"
+
+## Pod resource requests & limits
+resources:
+  requests:
+    cpu: 50m
+    memory: 50Mi
+  limits:
+    cpu: 200m
+    memory: 200Mi
+
+## Serve application over HTTP without TLS
+##
+## Note: If set to true, you may want to add --enable-insecure-login to extraArgs
+protocolHttp: false
+
+service:
+  type: ClusterIP
+  # Dashboard service port
+  externalPort: 443
+
+
+## Metrics Scraper
+## Container to scrape, store, and retrieve a window of time from the Metrics Server.
+## refs: https://github.com/kubernetes-sigs/dashboard-metrics-scraper
+metricsScraper:
+  ## Wether to enable dashboard-metrics-scraper
+  enabled: true
+
+## Optional Metrics Server sub-chart
+## Enable this is you don't already have metrics-server enabled on your cluster and
+## want to use it with dashboard metrics-scraper
+## refs:
+##  - https://hub.helm.sh/charts/stable/metrics-server
+##  - https://github.com/kubernetes-sigs/metrics-server
+metrics-server:
+  enabled: true
+  ## Example for additional args
+  # args:
+  #  - --kubelet-preferred-address-types=InternalIP
+  #  - --kubelet-insecure-tls

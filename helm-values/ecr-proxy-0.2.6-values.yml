@@ -1,0 +1,50 @@
+#  https://github.com/evryfs/helm-charts/releases/download/ecr-proxy-0.2.6/ecr-proxy-0.2.6.tgz
+
+# -- Kubernetes service
+service:
+  type: ClusterIP
+  port: 80
+
+# -- ingress configuration
+ingress:
+  enabled: true
+  annotations:
+     kubernetes.io/ingress.class: kong
+     konghq.com/protocols: "https"
+     konghq.com/https-redirect-status-code: "301"
+  # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: repl-dev.highcohesion.com
+      paths:
+        - /
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+env:
+  - name: UPSTREAM
+    value: https://002193201352.dkr.ecr.eu-west-1.amazonaws.com
+  - name: AWS_REGION
+    valueFrom:
+      secretKeyRef:
+        name: fn-aws-secrets
+        key: AWS_REGION
+  - name: AWS_ACCESS_KEY_ID
+    valueFrom:
+      secretKeyRef:
+        name: fn-aws-secrets
+        key: AWS_ACCESS_KEY_ID
+  - name: AWS_SECRET_ACCESS_KEY
+    valueFrom:
+      secretKeyRef:
+        name: fn-aws-secrets
+        key: AWS_SECRET_ACCESS_KEY
+  - name: RESOLVER
+    value: kube-dns.kube-system.svc
+resources:
+   limits:
+     cpu: 100m
+     memory: 128Mi
+   requests:
+     cpu: 100m
+     memory: 128Mi

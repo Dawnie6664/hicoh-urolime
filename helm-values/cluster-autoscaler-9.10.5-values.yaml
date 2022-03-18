@@ -1,0 +1,24 @@
+#helm upgrade --install cluster-autoscaler --namespace kube-system autoscaler/cluster-autoscaler --values helm-values/cluster-autoscaler-9.10.5-values.yaml
+
+awsRegion: eu-west-1
+
+image:
+  tag: v1.22.0
+
+rbac:
+  create: true
+  serviceAccount:
+    # This value should match local.k8s_service_account_name in locals.tf
+    name: cluster-autoscaler-aws
+    annotations:
+      # This value should match the ARN of the role created by module.iam_assumable_role_admin in irsa.tf
+#      eks.amazonaws.com/role-arn: "arn:aws:iam::002193201352:role/hico-staging-autoscaler"
+#      eks.amazonaws.com/role-arn: "arn:aws:iam::002193201352:role/hico-develop-autoscaler"
+      eks.amazonaws.com/role-arn: "arn:aws:iam::002193201352:role/hico-master-autoscaler"
+#      eks.amazonaws.com/role-arn: "arn:aws:iam::<ACCOUNT ID>:role/cluster-autoscaler"
+
+autoDiscovery:
+#  clusterName: hico-develop
+#  clusterName: hico-staging
+  clusterName: hico-master
+  enabled: true

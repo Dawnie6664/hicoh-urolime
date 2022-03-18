@@ -1,0 +1,141 @@
+# helm upgrade --install kong kong/kong --values kong-2.3.0-values.yml -n kong --create-namespace
+
+
+# Default values for Kong's Helm Chart.
+# Declare variables to be passed into your templates.
+#
+# Sections:
+# - Deployment parameters
+# - Kong parameters
+# - Ingress Controller parameters
+# - Postgres sub-chart parameters
+# - Miscellaneous parameters
+# - Kong Enterprise parameters
+
+# -----------------------------------------------------------------------------
+# Deployment parameters
+# -----------------------------------------------------------------------------
+
+deployment:
+  kong:
+    enabled: true
+
+env:
+  database: "postgres"
+  trusted_ips: "0.0.0.0/0,::/0"
+  real_ip_header: "proxy_protocol"
+  ssl_cipher_suite: "intermediate"
+
+
+# Specify Kong admin API service and listener configuration
+admin:
+  enabled: true
+
+  http:
+    enabled: true
+
+  tls:
+    # Enable HTTPS listen for the admin API
+    enabled: true
+
+# Specify Kong proxy service configuration
+proxy:
+  # Enable creating a Kubernetes service for the proxy
+  enabled: true
+  type: LoadBalancer
+  # To specify annotations or labels for the proxy service, add them to the respective
+  # "annotations" or "labels" dictionaries below.
+  annotations:
+  # If terminating TLS at the ELB, the following annotations can be used
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "ssl"
+    service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
+    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "arn:aws:acm:eu-west-1:002193201352:certificate/268540ea-0d1c-4944-9195-fe4ee788a4e7"
+    # service.beta.kubernetes.io/aws-load-balancer-ssl-negotiation-policy: ELBSecurityPolicy-TLS-1-1-2017-01
+    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443"
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+  labels:
+    enable-metrics: "true"
+
+  http:
+    # Enable plaintext HTTP listen for the proxy
+    enabled: true
+    servicePort: 80
+    containerPort: 8000
+    # Additional listen parameters, e.g. "reuseport", "backlog=16384"
+    parameters: []
+
+  tls:
+    # Enable HTTPS listen for the proxy
+    enabled: true
+    servicePort: 443
+    containerPort: 8443
+    # Set a target port for the TLS port in proxy service
+    # overrideServiceTargetPort: 8000
+    # Additional listen parameters, e.g. "reuseport", "backlog=16384"
+    parameters:
+    - http2
+    - ssl
+
+
+# -----------------------------------------------------------------------------
+# Ingress Controller parameters
+# -----------------------------------------------------------------------------
+ingressController:
+  enabled: true
+
+# -----------------------------------------------------------------------------
+# Postgres sub-chart parameters
+# -----------------------------------------------------------------------------
+
+# Kong can run without a database or use either Postgres or Cassandra
+# as a backend datatstore for it's configuration.
+# By default, this chart installs Kong without a database.
+
+# If you would like to use a database, there are two options:
+# - (recommended) Deploy and maintain a database and pass the connection
+#   details to Kong via the `env` section.
+# - You can use the below `postgresql` sub-chart to deploy a database
+#   along-with Kong as part of a single Helm release.
+
+# PostgreSQL chart documentation:
+# https://github.com/bitnami/charts/blob/master/bitnami/postgresql/README.md
+
+postgresql:
+  enabled: true
+  postgresqlUsername: kong
+  postgresqlDatabase: kong
+  postgresqlPassword: kong
+  service:
+    port: 5432
+
+# -----------------------------------------------------------------------------
+# Miscellaneous parameters
+# -----------------------------------------------------------------------------
+
+waitImage:
+  # Wait for the database to come online before starting Kong or running migrations
+  # If Kong is to access the database through a service mesh that injects a sidecar to
+  # Kong's container, this must be disabled. Otherwise there'll be a deadlock:
+  # InitContainer waiting for DB access that requires the sidecar, and the sidecar
+  # waiting for InitContainers to finish.
+  enabled: true
+  # Optionally specify an image that provides bash for pre-migration database
+  # checks. If none is specified, the chart uses the Kong image. The official
+  # Kong images provide bash
+  # repository: bash
+  # tag: 5
+  pullPolicy: IfNotPresent
+
+
+serviceMonitor:
+  # Specifies whether ServiceMonitor for Prometheus operator should be created
+  # If you wish to gather metrics from a Kong instance with the proxy disabled (such as a hybrid control plane), see:
+  # https://github.com/Kong/charts/blob/main/charts/kong/README.md#prometheus-operator-integration
+  enabled: false
+  # interval: 10s
+  # Specifies namespace, where ServiceMonitor should be installed
+  # namespace: monitoring
+  # labels:
+  #   foo: bar
+  # targetLabels:
+  #   - foo

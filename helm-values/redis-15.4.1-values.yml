@@ -1,0 +1,66 @@
+#  helm upgrade --install redis bitnami/redis --values helm-values/redis-15.4.1-values.yml -n kube-redis --create-namespace
+
+## @section Global parameters
+## Global Docker image parameters
+## Please, note that this will override the image parameters, including dependencies, configured to use the global value
+## Current available global Docker image parameters: imageRegistry, imagePullSecrets and storageClass
+
+## @param global.imageRegistry Global Docker image registry
+## @param global.imagePullSecrets Global Docker registry secret names as an array
+## @param global.storageClass Global StorageClass for Persistent Volume(s)
+## @param global.redis.password Global Redis&trade; password (overrides `auth.password`)
+##
+global:
+  imageRegistry: ""
+  ## E.g.
+  ## imagePullSecrets:
+  ##   - myRegistryKeySecretName
+  ##
+  imagePullSecrets: []
+  storageClass: ""
+  redis:
+    password: ""
+
+## @param architecture Redis&trade; architecture. Allowed values: `standalone` or `replication`
+##
+architecture: replication
+## Redis&trade; Authentication parameters
+## ref: https://github.com/bitnami/bitnami-docker-redis#setting-the-server-password-on-first-run
+##
+auth:
+  ## @param auth.enabled Enable password authentication
+  ##
+  enabled: false
+  ## Redis&trade; master resource requests and limits
+  ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
+  ## @param master.resources.limits The resources limits for the Redis&trade; master containers
+  ## @param master.resources.requests The requested resources for the Redis&trade; master containers
+  ##
+  resources:
+    limits:
+      cpu: 250m
+      memory: 1024Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+
+
+replica:
+  ## @param replica.replicaCount Number of Redis&trade; replicas to deploy
+  ##
+  replicaCount: 1
+  ## @param replica.configuration Configuration for Redis&trade; replicas nodes
+  ## ref: https://redis.io/topics/config
+  ##
+
+  resources:
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    limits:
+       cpu: 250m
+       memory: 512Mi
+    requests:
+       cpu: 100m
+       memory: 256Mi

@@ -1,0 +1,25 @@
+# Create needed namespaces first
+#  k apply -f https://raw.githubusercontent.com/openfaas/faas-netes/master/namespaces.yml
+
+generateBasicAuth: true
+
+# ingress configuration
+ingress:
+  enabled: true
+  ## For k8s >= 1.18 you need to specify the pathType
+  ## See https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/#better-path-matching-with-path-types
+  #pathType: ImplementationSpecific
+
+  # Used to create Ingress record (should be used with exposeServices: false).
+  hosts:
+    - host: faas-dev.highcohesion.com  # Replace with gateway.example.com if public-facing
+      serviceName: gateway
+      servicePort: 8080
+      path: /
+  annotations:
+    kubernetes.io/ingress.class: kong
+    konghq.com/protocols: "https"
+    konghq.com/https-redirect-status-code: "301"
+
+  tls:
+  # Secrets must be manually created in the namespace.
