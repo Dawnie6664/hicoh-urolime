@@ -19,7 +19,6 @@ jobs:
       - terraform/plan:
            path: << parameters.tf-path >>
 
-
   terraformer-apply: &terraformer-apply
     executor: terraform/default
     working_directory: ~/project
@@ -32,12 +31,32 @@ jobs:
       - terraform/apply:
            path:  << parameters.tf-path >>
 
+  hold-apply: &hold-apply
+       type: approval
+       parameters:
+         gitbranch:
+            description: github branch filter
+            type: string
+         tfplanrequire:
+            description: tf plan required 
+            type: string
+       filters:
+          branches:
+            only:
+               - << parameters.gitbranch >>
+        requires:
+               - << parameters.tfplanrequire >>
+  
+
   terraformer-plan-master: *terraformer-plan
   terraformer-plan-staging: *terraformer-plan
   terraformer-plan-develop: *terraformer-plan
   terraformer-apply-master: *terraformer-apply
   terraformer-apply-staging: *terraformer-apply
   terraformer-apply-develop: *terraformer-apply
+  hold-apply-develop: *hold-apply
+  hold-apply-staging: *hold-apply
+  hold-apply-master: *hold-apply
 
 workflows:
   deploy_infrastructure:
@@ -67,31 +86,16 @@ workflows:
                    - master
 
       - hold-apply-develop:
-            type: approval
-            filters:
-              branches:
-                only:
-                   - main
-            requires:
-                   - terraformer-plan-develop
+              gitbranch: main
+              tfplanrequire: terraformer-plan-develop
 
       - hold-apply-staging:
-            type: approval
-            filters:
-              branches:
-                only:
-                   - staging
-            requires:
-                   - terraformer-plan-staging
+              gitbranch: staging
+              tfplanrequire: terraformer-plan-staging
 
       - hold-apply-master:
-            type: approval
-            filters:
-              branches:
-                only:
-                   - master
-            requires:
-                   - terraformer-plan-master
+            gitbranch: master
+            tfplanrequire: terraformer-plan-master
          
       - terraformer-apply-develop:
             context: "AWS Credentials"
