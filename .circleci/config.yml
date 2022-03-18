@@ -170,12 +170,11 @@ workflows:
 #          values-to-override: 'autoDiscovery.clusterName=hico-${CIRCLE_BRANCH},rbac.serviceAccount.annotations.eks.amazonaws.com/role-arn=arn:aws:iam::002193201352:role/hico-${CIRCLE_BRANCH}-autoscaler'
 #          context: "AWS Credentials"
 #          requires:
-#            - hold-apply
+#            - hold-apply-develop
 #          filters:
 #              branches:
 #                only:
-#                   - develop
-
+#                   - main
 
 #     - upgrade-clusterautoscaler-chart-staging:
 #          chart-url: https://github.com/kubernetes/autoscaler/releases/download/cluster-autoscaler-chart-9.10.5/cluster-autoscaler-9.10.5.tgz
@@ -185,7 +184,7 @@ workflows:
 #          values-to-override: 'autoDiscovery.clusterName=hico-${CIRCLE_BRANCH},rbac.serviceAccount.annotations.eks.amazonaws.com/role-arn=arn:aws:iam::002193201352:role/hico-${CIRCLE_BRANCH}-autoscaler'
 #          context: "AWS Credentials"
 #          requires:
-#            - hold-apply
+#            - hold-apply-staging
 #          filters:
 #              branches:
 #                only:
@@ -199,7 +198,7 @@ workflows:
 #          values-to-override: 'autoDiscovery.clusterName=hico-${CIRCLE_BRANCH},rbac.serviceAccount.annotations.eks.amazonaws.com/role-arn=arn:aws:iam::002193201352:role/hico-${CIRCLE_BRANCH}-autoscaler'
 #          context: "AWS Credentials"
 #          requires:
-#            - hold-apply
+#            - hold-apply-master
 #          filters:
 #              branches:
 #                only:
@@ -214,11 +213,11 @@ workflows:
           values-to-override: ''
           context: "AWS Credentials"
           requires:
-            - hold-apply
+            - hold-apply-develop
           filters:
               branches:
                 only:
-                   - develop
+                   - main
 
       - upgrade-kong-chart-staging:
           chart-url: https://github.com/Kong/charts/releases/download/kong-2.3.0/kong-2.3.0.tgz
@@ -228,7 +227,7 @@ workflows:
           values-to-override: ''
           context: "AWS Credentials"
           requires:
-            - hold-apply
+            - hold-apply-staging
           filters:
               branches:
                 only:
@@ -242,7 +241,7 @@ workflows:
           values-to-override: ''
           context: "AWS Credentials"
           requires:
-            - hold-apply
+            - hold-apply-master
           filters:
               branches:
                 only:
@@ -256,11 +255,11 @@ workflows:
           values-to-override: ''
           context: "AWS Credentials"
           requires:
-            - hold-apply
+            - hold-apply-develop
           filters:
               branches:
                 only:
-                   - develop
+                   - main
 
       - upgrade-redis-chart-staging:
           chart-url: https://charts.bitnami.com/bitnami/redis-15.4.1.tgz
@@ -270,7 +269,7 @@ workflows:
           values-to-override: ''
           context: "AWS Credentials"
           requires:
-            - hold-apply
+            - hold-apply-staging
           filters:
               branches:
                 only:
@@ -284,7 +283,7 @@ workflows:
           values-to-override: ''
           context: "AWS Credentials"
           requires:
-            - hold-apply
+            - hold-apply-master
           filters:
               branches:
                 only:
@@ -298,11 +297,11 @@ workflows:
           values-file: 'helm-values/datadog-2.20.1-values.yml'
           context: "AWS Credentials"
           requires:
-            - hold-apply
+            - hold-apply-develop
           filters:
             branches:
               only:
-                - develop
+                - main
       
       - upgrade-datadog-chart-staging:
           chart-url: https://github.com/DataDog/helm-charts/releases/download/datadog-2.20.1/datadog-2.20.1.tgz
@@ -312,7 +311,7 @@ workflows:
           values-file: 'helm-values/datadog-2.20.1-values.yml'
           context: "AWS Credentials"
           requires:
-            - hold-apply
+            - hold-apply-staging
           filters:
             branches:
               only:
@@ -326,7 +325,7 @@ workflows:
           values-file: 'helm-values/datadog-2.20.1-values.yml'
           context: "AWS Credentials"
           requires:
-            - hold-apply
+            - hold-apply-master
           filters:
             branches:
               only:
@@ -339,12 +338,12 @@ workflows:
           values-file: 'helm-values/kube-prometheus-stack-18.0.2.yml'
           context: "AWS Credentials"
           requires:
-            - hold-apply
+            - hold-apply-develop
           values-to-override: 'grafana.ingress.hosts[0]=grafana-${CIRCLE_BRANCH}.highcohesion.com'
           filters:
             branches:
               only:
-                - develop
+                - main
 
       - upgrade-prometheus-stack-chart-staging:
           chart-url: https://github.com/prometheus-community/helm-charts/releases/download/kube-prometheus-stack-18.0.2/kube-prometheus-stack-18.0.2.tgz
@@ -353,7 +352,7 @@ workflows:
           values-file: 'helm-values/kube-prometheus-stack-18.0.2.yml'
           context: "AWS Credentials"
           requires:
-            - hold-apply
+            - hold-apply-staging
           values-to-override: 'grafana.ingress.hosts[0]=grafana-${CIRCLE_BRANCH}.highcohesion.com'
           filters:
             branches:
@@ -367,10 +366,10 @@ workflows:
           values-file: 'helm-values/kube-prometheus-stack-18.0.2.yml'
           context: "AWS Credentials"
           requires:
-            - hold-apply
+            - hold-apply-master
           values-to-override: 'grafana.ingress.hosts[0]=grafana.highcohesion.com'
           filters:
             branches:
               only:
-                - staging
+                - master
                 
