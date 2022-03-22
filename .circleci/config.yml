@@ -13,9 +13,9 @@ jobs:
     steps:
       - checkout
       - terraform/init:
-           path: << pipeline.git.branch >>
+           path: ./environments/<< pipeline.git.branch >>
       - terraform/plan:
-           path: << pipeline.git.branch >>
+           path: ./environments/<< pipeline.git.branch >>
 
 
   terraformer-apply:
@@ -24,7 +24,7 @@ jobs:
     steps:
       - checkout
       - terraform/apply:
-           path:  << pipeline.git.branch >>
+           path: ./environments/<< pipeline.git.branch >>
 
   upgrade-helm-chart: &upgrade-helm-chart
     working_directory: ~/project
