@@ -82,7 +82,6 @@ workflows:
     jobs:
       - terraformer-plan:
            context: "AWS Credentials"
-           tf-path: ./environments/development
            filters:
              branches:
                only:
@@ -103,7 +102,6 @@ workflows:
 
       - terraformer-apply:
             context: "AWS Credentials"
-            tf-path: ./environments/development
             requires:
                 - hold-apply
 
