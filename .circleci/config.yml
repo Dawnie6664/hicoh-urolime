@@ -59,8 +59,8 @@ jobs:
           values-to-override: << parameters.values-to-override >>
           values: << parameters.values-file >>
    
-  terraformer-plan-develop: *terraformer-plan
-  terraformer-apply-develop: *terraformer-apply
+  terraformer-plan: *terraformer-plan
+  terraformer-apply: *terraformer-apply
   upgrade-clusterautoscaler-chart-develop: *upgrade-helm-chart
   upgrade-clusterautoscaler-chart-staging: *upgrade-helm-chart
   upgrade-clusterautoscaler-chart-master: *upgrade-helm-chart
