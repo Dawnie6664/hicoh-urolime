@@ -7,7 +7,7 @@ orbs:
 
 
 jobs:
-  terraformer-plan: &terraformer-plan
+  terraformer-plan: 
     executor: terraform/default
     working_directory: ~/project
     steps:
@@ -18,7 +18,7 @@ jobs:
            path: << pipeline.git.branch >>
 
 
-  terraformer-apply: &terraformer-apply
+  terraformer-apply:
     executor: terraform/default
     working_directory: ~/project
     steps:
@@ -59,8 +59,7 @@ jobs:
           values-to-override: << parameters.values-to-override >>
           values: << parameters.values-file >>
    
-  terraformer-plan: *terraformer-plan
-  terraformer-apply: *terraformer-apply
+  
   upgrade-clusterautoscaler-chart-develop: *upgrade-helm-chart
   upgrade-clusterautoscaler-chart-staging: *upgrade-helm-chart
   upgrade-clusterautoscaler-chart-master: *upgrade-helm-chart
