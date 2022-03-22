@@ -10,29 +10,21 @@ jobs:
   terraformer-plan: &terraformer-plan
     executor: terraform/default
     working_directory: ~/project
-    parameters:
-      tf-path:
-        description: tf path
-        type: string
     steps:
       - checkout
       - terraform/init:
-           path: << parameters.tf-path >>
+           path: << pipeline.git.branch >>
       - terraform/plan:
-           path: << parameters.tf-path >>
+           path: << pipeline.git.branch >>
 
 
   terraformer-apply: &terraformer-apply
     executor: terraform/default
     working_directory: ~/project
-    parameters:
-      tf-path:
-        description: tf path
-        type: string
     steps:
       - checkout
       - terraform/apply:
-           path:  << parameters.tf-path >>
+           path:  << pipeline.git.branch >>
 
   upgrade-helm-chart: &upgrade-helm-chart
     working_directory: ~/project
@@ -67,11 +59,7 @@ jobs:
           values-to-override: << parameters.values-to-override >>
           values: << parameters.values-file >>
    
-  terraformer-plan-master: *terraformer-plan
-  terraformer-plan-staging: *terraformer-plan
   terraformer-plan-develop: *terraformer-plan
-  terraformer-apply-master: *terraformer-apply
-  terraformer-apply-staging: *terraformer-apply
   terraformer-apply-develop: *terraformer-apply
   upgrade-clusterautoscaler-chart-develop: *upgrade-helm-chart
   upgrade-clusterautoscaler-chart-staging: *upgrade-helm-chart
@@ -93,74 +81,33 @@ jobs:
 workflows:
   deploy_infrastructure:
     jobs:
-      - terraformer-plan-develop:
+      - terraformer-plan:
            context: "AWS Credentials"
            tf-path: ./environments/development
            filters:
              branches:
                only:
                   - main
-
-      - terraformer-plan-staging:
-           context: "AWS Credentials"
-           tf-path: ./environments/staging
-           filters:
-             branches:
-               only:
                   - staging
+                  - master
 
-      - terraformer-plan-master:
-            context: "AWS Credentials"
-            tf-path: ./environments/production
-            filters:     
-              branches:
-                only:
-                   - master
-
-      - hold-apply-develop:
+      - hold-apply:
             type: approval
             filters:
               branches:
                 only:
                    - main
-            requires:
-                   - terraformer-plan-develop
-
-      - hold-apply-staging:
-            type: approval
-            filters:
-              branches:
-                only:
                    - staging
-            requires:
-                   - terraformer-plan-staging
-
-      - hold-apply-master:
-            type: approval
-            filters:
-              branches:
-                only:
                    - master
             requires:
-                   - terraformer-plan-master
-         
-      - terraformer-apply-develop:
+                   - terraformer-plan
+
+      - terraformer-apply:
             context: "AWS Credentials"
             tf-path: ./environments/development
             requires:
-                - hold-apply-develop
+                - hold-apply
 
-      - terraformer-apply-staging:
-            context: "AWS Credentials"
-            tf-path: ./environments/staging
-            requires:
-                - hold-apply-staging 
-
-      - terraformer-apply-master:
-            context: "AWS Credentials"
-            tf-path: ./environments/production
-            requires:
-                - hold-apply-master
 
 #     - upgrade-clusterautoscaler-chart-develop:
 #          chart-url: https://github.com/kubernetes/autoscaler/releases/download/cluster-autoscaler-chart-9.10.5/cluster-autoscaler-9.10.5.tgz
@@ -170,7 +117,7 @@ workflows:
 #          values-to-override: 'autoDiscovery.clusterName=hico-${CIRCLE_BRANCH},rbac.serviceAccount.annotations.eks.amazonaws.com/role-arn=arn:aws:iam::002193201352:role/hico-${CIRCLE_BRANCH}-autoscaler'
 #          context: "AWS Credentials"
 #          requires:
-#            - hold-apply-develop
+#            - hold-apply
 #          filters:
 #              branches:
 #                only:
@@ -184,7 +131,7 @@ workflows:
 #          values-to-override: 'autoDiscovery.clusterName=hico-${CIRCLE_BRANCH},rbac.serviceAccount.annotations.eks.amazonaws.com/role-arn=arn:aws:iam::002193201352:role/hico-${CIRCLE_BRANCH}-autoscaler'
 #          context: "AWS Credentials"
 #          requires:
-#            - hold-apply-staging
+#            - hold-apply
 #          filters:
 #              branches:
 #                only:
@@ -198,7 +145,7 @@ workflows:
 #          values-to-override: 'autoDiscovery.clusterName=hico-${CIRCLE_BRANCH},rbac.serviceAccount.annotations.eks.amazonaws.com/role-arn=arn:aws:iam::002193201352:role/hico-${CIRCLE_BRANCH}-autoscaler'
 #          context: "AWS Credentials"
 #          requires:
-#            - hold-apply-master
+#            - hold-apply
 #          filters:
 #              branches:
 #                only:
@@ -213,7 +160,7 @@ workflows:
           values-to-override: ''
           context: "AWS Credentials"
           requires:
-            - hold-apply-develop
+            - hold-apply
           filters:
               branches:
                 only:
@@ -227,7 +174,7 @@ workflows:
           values-to-override: ''
           context: "AWS Credentials"
           requires:
-            - hold-apply-staging
+            - hold-apply
           filters:
               branches:
                 only:
@@ -241,7 +188,7 @@ workflows:
           values-to-override: ''
           context: "AWS Credentials"
           requires:
-            - hold-apply-master
+            - hold-apply
           filters:
               branches:
                 only:
@@ -255,7 +202,7 @@ workflows:
           values-to-override: ''
           context: "AWS Credentials"
           requires:
-            - hold-apply-develop
+            - hold-apply
           filters:
               branches:
                 only:
@@ -269,7 +216,7 @@ workflows:
           values-to-override: ''
           context: "AWS Credentials"
           requires:
-            - hold-apply-staging
+            - hold-apply
           filters:
               branches:
                 only:
@@ -283,7 +230,7 @@ workflows:
           values-to-override: ''
           context: "AWS Credentials"
           requires:
-            - hold-apply-master
+            - hold-apply
           filters:
               branches:
                 only:
@@ -297,7 +244,7 @@ workflows:
           values-file: 'helm-values/datadog-2.20.1-values.yml'
           context: "AWS Credentials"
           requires:
-            - hold-apply-develop
+            - hold-apply
           filters:
             branches:
               only:
@@ -311,7 +258,7 @@ workflows:
           values-file: 'helm-values/datadog-2.20.1-values.yml'
           context: "AWS Credentials"
           requires:
-            - hold-apply-staging
+            - hold-apply
           filters:
             branches:
               only:
@@ -325,7 +272,7 @@ workflows:
           values-file: 'helm-values/datadog-2.20.1-values.yml'
           context: "AWS Credentials"
           requires:
-            - hold-apply-master
+            - hold-apply
           filters:
             branches:
               only:
@@ -338,7 +285,7 @@ workflows:
           values-file: 'helm-values/kube-prometheus-stack-18.0.2.yml'
           context: "AWS Credentials"
           requires:
-            - hold-apply-develop
+            - hold-apply
           values-to-override: 'grafana.ingress.hosts[0]=grafana-${CIRCLE_BRANCH}.highcohesion.com'
           filters:
             branches:
@@ -352,7 +299,7 @@ workflows:
           values-file: 'helm-values/kube-prometheus-stack-18.0.2.yml'
           context: "AWS Credentials"
           requires:
-            - hold-apply-staging
+            - hold-apply
           values-to-override: 'grafana.ingress.hosts[0]=grafana-${CIRCLE_BRANCH}.highcohesion.com'
           filters:
             branches:
@@ -366,7 +313,7 @@ workflows:
           values-file: 'helm-values/kube-prometheus-stack-18.0.2.yml'
           context: "AWS Credentials"
           requires:
-            - hold-apply-master
+            - hold-apply
           values-to-override: 'grafana.ingress.hosts[0]=grafana.highcohesion.com'
           filters:
             branches:
